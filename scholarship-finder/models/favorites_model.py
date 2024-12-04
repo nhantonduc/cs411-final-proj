@@ -3,6 +3,8 @@ from typing import List
 
 # from scholarship_finder.models.scholarships_model import Scholarship
 
+# Done by Olu
+
 logger = logging.getLogger(__name__)
 configure_logger(logger)
 
