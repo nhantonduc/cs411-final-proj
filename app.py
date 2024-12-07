@@ -7,6 +7,9 @@ from config import ProductionConfig
 from scholarship_finder.db import db
 from scholarship_finder.models.user_model import Users
 from scholarship_finder.models.favorites_model import FavoritesModel
+from scholarship_finder.models.scholarship_model import ScholarshipModel
+from datetime import datetime
+import logging
 
 # Load environment variables from .env file
 load_dotenv()
@@ -114,4 +117,157 @@ def create_app(config_class=ProductionConfig):
         except Exception as e:
             app.logger.error("Failed to delete user: %s", str(e))
             return make_response(jsonify({'error': str(e)}), 500)
+
+    ##########################################################
+    #
+    # Scholarship Routes
+    #
+    ##########################################################
+
+    @app.route('/api/scholarships', methods=['GET'])
+    def get_all_scholarships():
+        """Get all available scholarships."""
+        try:
+            scholarships = ScholarshipModel.get_all_scholarships()
+            return jsonify({
+                "status": "success",
+                "scholarships": scholarships
+            }), 200
+        except Exception as e:
+            app.logger.error(f"Error retrieving scholarships: {str(e)}")
+            return jsonify({
+                "status": "error",
+                "message": "Failed to retrieve scholarships"
+            }), 500
+
+    @app.route('/api/scholarships/type/<scholarship_type>', methods=['GET'])
+    def get_scholarships_by_type(scholarship_type):
+        """Get scholarships filtered by type."""
+        try:
+            scholarships = ScholarshipModel.get_scholarships_by_type(scholarship_type)
+            return jsonify({
+                "status": "success",
+                "scholarships": scholarships,
+                "type": scholarship_type
+            }), 200
+        except Exception as e:
+            app.logger.error(f"Error retrieving scholarships by type: {str(e)}")
+            return jsonify({
+                "status": "error",
+                "message": "Failed to retrieve scholarships"
+            }), 500
+
+    @app.route('/api/scholarships/sort/deadline', methods=['GET'])
+    def get_scholarships_by_deadline():
+        """Get scholarships sorted by deadline."""
+        try:
+            scholarships = ScholarshipModel.get_scholarships_sorted_by_deadline()
+            return jsonify({
+                "status": "success",
+                "scholarships": scholarships
+            }), 200
+        except Exception as e:
+            app.logger.error(f"Error retrieving sorted scholarships: {str(e)}")
+            return jsonify({
+                "status": "error",
+                "message": "Failed to retrieve sorted scholarships"
+            }), 500
+
+    ##########################################################
+    #
+    # Favorites Routes
+    #
+    ##########################################################
+
+    @app.route('/api/favorites/<int:user_id>', methods=['GET'])
+    def get_user_favorites(user_id):
+        """Get all favorites for a specific user."""
+        try:
+            favorites_model = FavoritesModel(user_id)
+            favorites = favorites_model.get_favorites()
+            
+            return jsonify({
+                "status": "success",
+                "favorites": favorites
+            }), 200
+        except Exception as e:
+            app.logger.error(f"Error retrieving favorites for user {user_id}: {str(e)}")
+            return jsonify({
+                "status": "error",
+                "message": "Failed to retrieve favorites"
+            }), 500
+
+    @app.route('/api/favorites/add', methods=['POST'])
+    def add_to_favorites():
+        """Add a scholarship to user's favorites."""
+        try:
+            data = request.get_json()
+            user_id = data.get('user_id')
+            scholarship_id = data.get('scholarship_id')
+
+            if not user_id or not scholarship_id:
+                return jsonify({
+                    "status": "error",
+                    "message": "Missing user_id or scholarship_id"
+                }), 400
+
+            favorites_model = FavoritesModel(user_id)
+            favorites_model.add_to_favorites(scholarship_id)
+
+            return jsonify({
+                "status": "success",
+                "message": "Scholarship added to favorites"
+            }), 200
+        except Exception as e:
+            app.logger.error(f"Error adding scholarship to favorites: {str(e)}")
+            return jsonify({
+                "status": "error",
+                "message": "Failed to add scholarship to favorites"
+            }), 500
+
+    @app.route('/api/favorites/remove', methods=['POST'])
+    def remove_from_favorites():
+        """Remove a scholarship from user's favorites."""
+        try:
+            data = request.get_json()
+            user_id = data.get('user_id')
+            scholarship_id = data.get('scholarship_id')
+
+            if not user_id or not scholarship_id:
+                return jsonify({
+                    "status": "error",
+                    "message": "Missing user_id or scholarship_id"
+                }), 400
+
+            favorites_model = FavoritesModel(user_id)
+            favorites_model.remove_from_favorites(scholarship_id)
+
+            return jsonify({
+                "status": "success",
+                "message": "Scholarship removed from favorites"
+            }), 200
+        except Exception as e:
+            app.logger.error(f"Error removing scholarship from favorites: {str(e)}")
+            return jsonify({
+                "status": "error",
+                "message": "Failed to remove scholarship from favorites"
+            }), 500
+
+    # Error handlers
+    @app.errorhandler(404)
+    def not_found_error(error):
+        return jsonify({
+            "status": "error",
+            "message": "Resource not found"
+        }), 404
+
+    @app.errorhandler(500)
+    def internal_error(error):
+        return jsonify({
+            "status": "error",
+            "message": "Internal server error"
+        }), 500
+
+    if __name__ == '__main__':
+        app.run(debug=True)
 
