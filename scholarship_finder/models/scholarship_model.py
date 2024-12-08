@@ -40,7 +40,7 @@ class Scholarship:
         self.deadline = deadline
 
     @classmethod
-    def filter_by_type(scholarships: List["Scholarship"], scholarship_type: str) -> List["Scholarship"]:
+    def filter_by_type(cls, scholarships: List["Scholarship"], scholarship_type: str) -> List["Scholarship"]:
         """
         Filters scholarships by type.
 
@@ -54,7 +54,7 @@ class Scholarship:
         return [scholarship for scholarship in scholarships if scholarship.type == scholarship_type]
 
     @classmethod
-    def filter_by_country(scholarships: List["Scholarship"], country: str) -> List["Scholarship"]:
+    def filter_by_country(cls, scholarships: List["Scholarship"], country: str) -> List["Scholarship"]:
         """
         Filters scholarships by country.
 
@@ -68,7 +68,7 @@ class Scholarship:
         return [scholarship for scholarship in scholarships if scholarship.country == country]
 
     @classmethod
-    def filter_by_requirements(scholarships: List["Scholarship"], requirements: List[str]) -> List["Scholarship"]:
+    def filter_by_requirements(cls, scholarships: List["Scholarship"], requirements: List[str]) -> List["Scholarship"]:
         """
         Filters scholarships by requirements.
 
@@ -86,7 +86,7 @@ class Scholarship:
         ]
 
     @classmethod
-    def sort_by_deadline(scholarships: List["Scholarship"]) -> List["Scholarship"]:
+    def sort_by_deadline(cls, scholarships: List["Scholarship"]) -> List["Scholarship"]:
         """
         Sorts scholarships by deadline in ascending order.
 

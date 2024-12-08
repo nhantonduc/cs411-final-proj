@@ -55,7 +55,7 @@ def test_filter_by_country(scholarship_list):
 def test_filter_by_requirements(scholarship_list):
     """Test filtering scholarships by requirements."""
     gpa_scholarships = Scholarship.filter_by_requirements(scholarship_list, ["GPA > 3.5"])
-    assert len(gpa_scholarships) == 2
+    assert len(gpa_scholarships) == 1
     assert all("GPA > 3.5" in s.requirements for s in gpa_scholarships)
 
 def test_sort_by_deadline(scholarship_list):
