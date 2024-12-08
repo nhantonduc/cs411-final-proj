@@ -5,9 +5,9 @@ from werkzeug.exceptions import BadRequest, Unauthorized
 
 from config import ProductionConfig
 from scholarship_finder.db import db
-from scholarship_finder.models.user_model import Users
+from scholarship_finder.models.user_model import User
 from scholarship_finder.models.favorites_model import FavoritesModel
-from scholarship_finder.models.scholarship_model import ScholarshipModel
+from scholarship_finder.models.scholarship_model import Scholarship
 from datetime import datetime
 import logging
 
@@ -75,7 +75,7 @@ def create_app(config_class=ProductionConfig):
 
             # Call the User function to add the user to the database
             app.logger.info('Adding user: %s', username)
-            Users.create_user(username, password)
+            User.create_user(username, password)
 
             app.logger.info("User added: %s", username)
             return make_response(jsonify({'status': 'user added', 'username': username}), 201)
@@ -110,7 +110,7 @@ def create_app(config_class=ProductionConfig):
 
             # Call the User function to delete the user from the database
             app.logger.info('Deleting user: %s', username)
-            Users.delete_user(username)
+            User.delete_user(username)
 
             app.logger.info("User deleted: %s", username)
             return make_response(jsonify({'status': 'user deleted', 'username': username}), 200)
@@ -128,7 +128,7 @@ def create_app(config_class=ProductionConfig):
     def get_all_scholarships():
         """Get all available scholarships."""
         try:
-            scholarships = ScholarshipModel.get_all_scholarships()
+            scholarships = Scholarship.get_all_scholarships()
             return jsonify({
                 "status": "success",
                 "scholarships": scholarships
@@ -144,7 +144,7 @@ def create_app(config_class=ProductionConfig):
     def get_scholarships_by_type(scholarship_type):
         """Get scholarships filtered by type."""
         try:
-            scholarships = ScholarshipModel.get_scholarships_by_type(scholarship_type)
+            scholarships = Scholarship.get_scholarships_by_type(scholarship_type)
             return jsonify({
                 "status": "success",
                 "scholarships": scholarships,
@@ -161,7 +161,7 @@ def create_app(config_class=ProductionConfig):
     def get_scholarships_by_deadline():
         """Get scholarships sorted by deadline."""
         try:
-            scholarships = ScholarshipModel.get_scholarships_sorted_by_deadline()
+            scholarships = Scholarship.get_scholarships_sorted_by_deadline()
             return jsonify({
                 "status": "success",
                 "scholarships": scholarships
@@ -271,3 +271,4 @@ def create_app(config_class=ProductionConfig):
     if __name__ == '__main__':
         app.run(debug=True)
 
+    return app
