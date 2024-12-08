@@ -41,110 +41,76 @@ The Scholarship Finder Application is designed to help students discover scholar
     ]
     ```
 
-### 2. Create a New Scholarship
-- **Route Name and Path**: Create Scholarship - `/api/scholarships`
-- **Request Type**: POST
-- **Purpose**: Add a new scholarship to the database.
+### 2. Get Scholarships by Type
+- **Route Name and Path**: Get Scholarships by Type - `/api/scholarships/type/<scholarship_type>`
+- **Request Type**: GET
+- **Purpose**: Retrieve scholarships filtered by a specific type.
 - **Request Format**: 
-  - POST body:
-    ```json
-    {
-      "title": "New Scholarship",
-      "description": "Description of the new scholarship.",
-      "type": "need-based",
-      "country": "USA",
-      "requirements": ["Financial need", "Essay submission"],
-      "deadline": "2024-01-15"
-    }
-    ```
+  - URL parameter:
+    - `scholarship_type`: string (the type of scholarship to filter by)
 - **Response Format**: 
-  - JSON object containing the created scholarship.
+  - JSON object containing an array of scholarships matching the specified type.
 - **Example**:
   - **Request**: 
     ```bash
-    curl -X POST http://localhost:5000/api/scholarships -H "Content-Type: application/json" -d '{"title": "New Scholarship", "description": "Description of the new scholarship.", "type": "need-based", "country": "USA", "requirements": ["Financial need", "Essay submission"], "deadline": "2024-01-15"}'
+    curl -X GET http://localhost:5000/api/scholarships/type/merit-based
     ```
   - **Response**:
     ```json
-    {
-      "id": 2,
-      "title": "New Scholarship",
-      "description": "Description of the new scholarship.",
-      "type": "need-based",
-      "country": "USA",
-      "requirements": ["Financial need", "Essay submission"],
-      "deadline": "2024-01-15"
-    }
+    [
+      {
+        "id": 1,
+        "title": "National Merit Scholarship",
+        "description": "Awarded to high school students based on academic achievement.",
+        "type": "merit-based",
+        "country": "USA",
+        "requirements": ["GPA above 3.5", "SAT score above 1400"],
+        "deadline": "2023-12-01"
+      }
+    ]
     ```
 
-### 3. Update a Scholarship
-- **Route Name and Path**: Update Scholarship - `/api/scholarships/<id>`
-- **Request Type**: PUT
-- **Purpose**: Update an existing scholarship by its ID.
+### 3. Sort Scholarships by Deadline
+- **Route Name and Path**: Sort Scholarships by Deadline - `/api/scholarships/sort/deadline`
+- **Request Type**: GET
+- **Purpose**: Retrieve scholarships sorted by their application deadlines in ascending order.
 - **Request Format**: 
-  - PUT body:
-    ```json
-    {
-      "title": "Updated Scholarship Title",
-      "description": "Updated description.",
-      "type": "merit-based",
-      "country": "USA",
-      "requirements": ["Updated requirement"],
-      "deadline": "2024-02-01"
-    }
-    ```
+  - No parameters required.
 - **Response Format**: 
-  - JSON object containing the updated scholarship.
+  - JSON object containing an array of scholarships sorted by deadline.
 - **Example**:
   - **Request**: 
     ```bash
-    curl -X PUT http://localhost:5000/api/scholarships/1 -H "Content-Type: application/json" -d '{"title": "Updated Scholarship Title", "description": "Updated description.", "type": "merit-based", "country": "USA", "requirements": ["Updated requirement"], "deadline": "2024-02-01"}'
+    curl -X GET http://localhost:5000/api/scholarships/sort/deadline
     ```
   - **Response**:
     ```json
-    {
-      "id": 1,
-      "title": "Updated Scholarship Title",
-      "description": "Updated description.",
-      "type": "merit-based",
-      "country": "USA",
-      "requirements": ["Updated requirement"],
-      "deadline": "2024-02-01"
-    }
+    [
+      {
+        "id": 1,
+        "title": "National Merit Scholarship",
+        "description": "Awarded to high school students based on academic achievement.",
+        "type": "merit-based",
+        "country": "USA",
+        "requirements": ["GPA above 3.5", "SAT score above 1400"],
+        "deadline": "2023-12-01"
+      }
+    ]
     ```
 
-### 4. Delete a Scholarship
-- **Route Name and Path**: Delete Scholarship - `/api/scholarships/<id>`
-- **Request Type**: DELETE
-- **Purpose**: Remove a scholarship from the database by its ID.
-- **Request Format**: 
-  - No body required.
-- **Response Format**: 
-  - JSON object confirming deletion.
-- **Example**:
-  - **Request**: 
-    ```bash
-    curl -X DELETE http://localhost:5000/api/scholarships/1
-    ```
-  - **Response**:
-    ```json
-    {
-      "message": "Scholarship deleted successfully."
-    }
-    ```
-
-### 5. Get User's Favorite Scholarships
-- **Route Name and Path**: Get Favorites - `/api/favorites`
+### 4. Get User's Favorite Scholarships
+- **Route Name and Path**: Get User's Favorites - `/api/favorites/<int:user_id>`
 - **Request Type**: GET
 - **Purpose**: Retrieve a list of the user's favorite scholarships.
 - **Request Format**: 
-  - No parameters required.
+  - URL parameter:
+    - `user_id`: integer (the ID of the user whose favorites are being retrieved)
 - **Response Format**: 
   - JSON object containing an array of favorite scholarships.
 - **Example**:
   - **Request**: 
     ```bash
-    curl -X GET http://localhost:5000/api/favorites
+    curl -X GET http://localhost:5000/api/favorites/1
     ```
   - **Response**:
     ```json
@@ -157,14 +123,15 @@ The Scholarship Finder Application is designed to help students discover scholar
     ]
     ```
 
-### 6. Add a Scholarship to Favorites
-- **Route Name and Path**: Add to Favorites - `/api/favorites`
+### 5. Add a Scholarship to Favorites
+- **Route Name and Path**: Add to Favorites - `/api/favorites/add`
 - **Request Type**: POST
 - **Purpose**: Add a scholarship to the user's favorites.
 - **Request Format**: 
   - POST body:
     ```json
     {
+      "user_id": 1,
       "scholarship_id": 1
     }
     ```
@@ -173,12 +140,38 @@ The Scholarship Finder Application is designed to help students discover scholar
 - **Example**:
   - **Request**: 
     ```bash
-    curl -X POST http://localhost:5000/api/favorites -H "Content-Type: application/json" -d '{"scholarship_id": 1}'
+    curl -X POST http://localhost:5000/api/favorites/add -H "Content-Type: application/json" -d '{"user_id": 1, "scholarship_id": 1}'
     ```
   - **Response**:
     ```json
     {
       "message": "Scholarship added to favorites successfully."
+    }
+    ```
+
+### 6. Remove a Scholarship from Favorites
+- **Route Name and Path**: Remove from Favorites - `/api/favorites/remove`
+- **Request Type**: POST
+- **Purpose**: Remove a scholarship from the user's favorites.
+- **Request Format**: 
+  - POST body:
+    ```json
+    {
+      "user_id": 1,
+      "scholarship_id": 1
+    }
+    ```
+- **Response Format**: 
+  - JSON object confirming the removal.
+- **Example**:
+  - **Request**: 
+    ```bash
+    curl -X POST http://localhost:5000/api/favorites/remove -H "Content-Type: application/json" -d '{"user_id": 1, "scholarship_id": 1}'
+    ```
+  - **Response**:
+    ```json
+    {
+      "message": "Scholarship removed from favorites successfully."
     }
     ```
 
