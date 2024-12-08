@@ -6,7 +6,7 @@ from sqlalchemy.exc import IntegrityError
 
 # The database and logger imports need to be changed here
 from meal_max.db import db
-from meal_max.utils.logger import configure_logger
+from scholarship_finder.utils.logger import configure_logger
 
 logger = logging.getLogger(__name__)
 configure_logger(logger)
