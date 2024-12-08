@@ -1,7 +1,7 @@
 import pytest
 import datetime
 
-from scholarship_finder.models.scholarship import Scholarship
+from scholarship_finder.models.scholarship_model import Scholarship
 
 @pytest.fixture
 def scholarship_1():

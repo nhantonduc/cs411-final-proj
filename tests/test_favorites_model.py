@@ -1,6 +1,6 @@
 import pytest
 
-from scholarship_finder.models.scholarships_model import Scholarship
+from scholarship_finder.models.scholarship_model import Scholarship
 from scholarship_finder.models.favorites_model import FavoritesModel
 
 @pytest.fixture()
