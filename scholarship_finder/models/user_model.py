@@ -3,9 +3,10 @@ import logging
 import os
 
 from sqlalchemy.exc import IntegrityError
+from typing import Tuple
 
 # The database and logger imports need to be changed here
-from meal_max.db import db
+from scholarship_finder.db import db
 from scholarship_finder.utils.logger import configure_logger
 
 logger = logging.getLogger(__name__)
@@ -21,7 +22,7 @@ class User(db.Model):
     password = db.Column(db.String(64), nullable=False)  # SHA-256 hash in hex
 
     @classmethod
-    def _generate_hashed_password(cls, password: str) -> tuple[str, str]:
+    def _generate_hashed_password(cls, password: str) -> Tuple[str, str]:
         """
         Generates a salted, hashed password.
 
