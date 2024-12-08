@@ -2,6 +2,9 @@
 from dataclasses import asdict, dataclass
 import datetime
 from typing import List, Optional
+from scholarship_finder.utils.logger import configure_logger
+
+import logging
 
 logger = logging.getLogger(__name__)
 configure_logger(logger)

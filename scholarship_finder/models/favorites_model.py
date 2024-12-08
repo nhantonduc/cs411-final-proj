@@ -2,6 +2,7 @@ import logging
 from typing import List
 
 # from scholarship_finder.models.scholarships_model import Scholarship
+from scholarship_finder.utils.logger import configure_logger
 
 # Done by Olu
 
