@@ -7,7 +7,7 @@ class ProductionConfig():
                                            # But we are doing unnecessarily complicated Redis
                                            # write-throughs
     SQLALCHEMY_DATABASE_URI = 'sqlite:///scholarship_finder.db'  # or your preferred database URI
-    NOTION_DATABASE_ID = "1496ed96f61f80cf8f32c1b591a2c6be"  # Replace with your actual Notion database ID
+    NOTION_DATABASE_ID = "157b2df7f84a81e98082febf3604e719"  # Replace with your actual Notion database ID
     
 class TestConfig():
     """Testing configuration."""
