@@ -6,34 +6,40 @@ from scholarship_finder.models.scholarship_model import Scholarship
 @pytest.fixture
 def scholarship_1():
     return Scholarship(
-        title="Merit Scholarship",
-        description="Awarded for academic excellence.",
+        university="MIT",
+        scholarship_name="Merit Scholarship",
         type="Merit-based",
+        degree_level="Undergraduate",
         country="USA",
-        requirements=["GPA > 3.5"],
-        deadline=datetime.date(2024, 1, 15),
+        deadline="2024-01-15",
+        min_gpa=3.5,
+        major=["Computer Science", "Engineering"]
     )
 
 @pytest.fixture
 def scholarship_2():
     return Scholarship(
-        title="Need Scholarship",
-        description="Awarded for financial need.",
+        university="Stanford",
+        scholarship_name="Need Scholarship",
         type="Need-based",
+        degree_level="Graduate",
         country="USA",
-        requirements=["Income < 50000"],
-        deadline=datetime.date(2024, 2, 20),
+        deadline="2024-02-20",
+        min_gpa=3.0,
+        major=["Any"]
     )
 
 @pytest.fixture
 def scholarship_3():
     return Scholarship(
-        title="STEM Scholarship",
-        description="Scholarship for STEM students.",
+        university="University of Toronto",
+        scholarship_name="STEM Scholarship",
         type="Merit-based",
+        degree_level="Undergraduate",
         country="Canada",
-        requirements=["GPA > 3.7", "STEM Major"],
-        deadline=datetime.date(2024, 3, 10),
+        deadline="2024-03-10",
+        min_gpa=3.7,
+        major=["STEM"]
     )
 
 @pytest.fixture
@@ -52,14 +58,19 @@ def test_filter_by_country(scholarship_list):
     assert len(usa_scholarships) == 2
     assert all(s.country == "USA" for s in usa_scholarships)
 
-def test_filter_by_requirements(scholarship_list):
-    """Test filtering scholarships by requirements."""
-    gpa_scholarships = Scholarship.filter_by_requirements(scholarship_list, ["GPA > 3.5"])
-    assert len(gpa_scholarships) == 1
-    assert all("GPA > 3.5" in s.requirements for s in gpa_scholarships)
-
 def test_sort_by_deadline(scholarship_list):
     """Test sorting scholarships by deadline."""
     sorted_scholarships = Scholarship.sort_by_deadline(scholarship_list)
     deadlines = [s.deadline for s in sorted_scholarships]
     assert deadlines == sorted(deadlines)
+
+def test_filter_by_degree_level(scholarship_list):
+    """Test filtering scholarships by degree level."""
+    undergrad_scholarships = Scholarship.filter_by_degree_level(scholarship_list, "Undergraduate")
+    assert len(undergrad_scholarships) == 2
+    assert all(s.degree_level == "Undergraduate" for s in undergrad_scholarships)
+
+def test_filter_by_min_gpa(scholarship_list):
+    """Test filtering scholarships by minimum GPA."""
+    qualified_scholarships = Scholarship.filter_by_min_gpa(scholarship_list, 3.6)
+    assert len(qualified_scholarships) == 2

@@ -12,88 +12,50 @@ configure_logger(logger)
 
 class Scholarship:
     """
-    A class representing a scholarship with various attributes.
-
-    Attributes:
-        title (str): The title of the scholarship.
-        description (str): A description of the scholarship.
-        type (str): The type of scholarship (e.g., merit-based, need-based).
-        country (str): The country where the scholarship is offered.
-        requirements (List[str]): A list of requirements for the scholarship.
-        deadline (datetime.date): The deadline for applying for the scholarship.
+    A class representing a scholarship with various attributes matching Notion database structure.
     """
 
     def __init__(
         self,
-        title: str,
-        description: str,
+        university: str,
+        scholarship_name: str,
         type: str,
+        degree_level: str,
         country: str,
-        requirements: List[str],
-        deadline: datetime.date,
+        deadline: str,
+        min_gpa: float = None,
+        major: list = None
     ):
-        self.title = title
-        self.description = description
+        self.university = university
+        self.scholarship_name = scholarship_name
         self.type = type
+        self.degree_level = degree_level
         self.country = country
-        self.requirements = requirements
         self.deadline = deadline
+        self.min_gpa = min_gpa
+        self.major = major if major else []
 
     @classmethod
     def filter_by_type(cls, scholarships: List["Scholarship"], scholarship_type: str) -> List["Scholarship"]:
-        """
-        Filters scholarships by type.
-
-        Args:
-            scholarships (List[Scholarship]): The list of scholarships to filter.
-            scholarship_type (str): The type to filter by.
-
-        Returns:
-            List[Scholarship]: A list of scholarships matching the specified type.
-        """
-        return [scholarship for scholarship in scholarships if scholarship.type == scholarship_type]
+        """Filters scholarships by type."""
+        return [s for s in scholarships if s.type == scholarship_type]
 
     @classmethod
     def filter_by_country(cls, scholarships: List["Scholarship"], country: str) -> List["Scholarship"]:
-        """
-        Filters scholarships by country.
-
-        Args:
-            scholarships (List[Scholarship]): The list of scholarships to filter.
-            country (str): The country to filter by.
-
-        Returns:
-            List[Scholarship]: A list of scholarships offered in the specified country.
-        """
-        return [scholarship for scholarship in scholarships if scholarship.country == country]
+        """Filters scholarships by country."""
+        return [s for s in scholarships if s.country == country]
 
     @classmethod
-    def filter_by_requirements(cls, scholarships: List["Scholarship"], requirements: List[str]) -> List["Scholarship"]:
-        """
-        Filters scholarships by requirements.
+    def filter_by_degree_level(cls, scholarships: List["Scholarship"], degree_level: str) -> List["Scholarship"]:
+        """Filters scholarships by degree level."""
+        return [s for s in scholarships if s.degree_level == degree_level]
 
-        Args:
-            scholarships (List[Scholarship]): The list of scholarships to filter.
-            requirements (List[str]): A list of requirements to match.
-
-        Returns:
-            List[Scholarship]: A list of scholarships meeting all specified requirements.
-        """
-        return [
-            scholarship
-            for scholarship in scholarships
-            if all(req in scholarship.requirements for req in requirements)
-        ]
+    @classmethod
+    def filter_by_min_gpa(cls, scholarships: List["Scholarship"], min_gpa: float) -> List["Scholarship"]:
+        """Filters scholarships by minimum GPA requirement."""
+        return [s for s in scholarships if s.min_gpa and s.min_gpa <= min_gpa]
 
     @classmethod
     def sort_by_deadline(cls, scholarships: List["Scholarship"]) -> List["Scholarship"]:
-        """
-        Sorts scholarships by deadline in ascending order.
-
-        Args:
-            scholarships (List[Scholarship]): The list of scholarships to sort.
-
-        Returns:
-            List[Scholarship]: A list of scholarships sorted by their deadlines.
-        """
+        """Sorts scholarships by deadline."""
         return sorted(scholarships, key=lambda s: s.deadline)

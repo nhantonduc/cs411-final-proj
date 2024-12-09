@@ -3,6 +3,7 @@ from typing import List
 
 # from scholarship_finder.models.scholarships_model import Scholarship
 from scholarship_finder.utils.logger import configure_logger
+from scholarship_finder.models.scholarship_model import Scholarship
 
 # Done by Olu
 
@@ -15,35 +16,43 @@ class FavoritesModel:
         self.user_id = user_id
         self.favorites = favorites or []
     
-    def add_to_favorites(self, scholarship_id):
+    def add_to_favorites(self, scholarship: 'Scholarship'):
         """
-        Adds a scholarship to list of favorites using the scholarship's ID.
+        Adds a scholarship to list of favorites.
 
         Args:
-            scholarship_id (int): the ID of scholarship being added to favorites
+            scholarship (Scholarship): The scholarship object to be added to favorites
         """
         logger.info("Adding scholarship to favorites list...")
-        if scholarship_id not in self.favorites:
-            self.favorites.append(scholarship_id)
+        scholarship_identifier = (scholarship.university, scholarship.scholarship_name)
+        
+        # Check if scholarship already exists by comparing university and name
+        existing_identifiers = [(s.university, s.scholarship_name) for s in self.favorites]
+        if scholarship_identifier not in existing_identifiers:
+            self.favorites.append(scholarship)
             logger.info("Scholarship added successfully.")
         else:
             logger.error("Scholarship already exists in favorites list.")
 
-    def remove_from_favorites(self, scholarship_id):
+    def remove_from_favorites(self, scholarship: 'Scholarship'):
         """
-        Removes a scholarship from list of favorites using the scholarship's ID.
+        Removes a scholarship from list of favorites.
 
         Args:
-            scholarship_id (int): the ID of scholarship being added to favorites
+            scholarship (Scholarship): The scholarship object to be removed from favorites
         """
         logger.info("Removing scholarship from favorites list...")
-        if scholarship_id in self.favorites:
-            self.favorites.remove(scholarship_id)
-            logger.info("Scholarship removed successfully.")
-        else:
-            logger.error("Scholarship not in favorites, cannot be removed.")
+        scholarship_identifier = (scholarship.university, scholarship.scholarship_name)
+        
+        # Find and remove scholarship by comparing university and name
+        for saved_scholarship in self.favorites[:]:  # Create a copy to iterate
+            if (saved_scholarship.university, saved_scholarship.scholarship_name) == scholarship_identifier:
+                self.favorites.remove(saved_scholarship)
+                logger.info("Scholarship removed successfully.")
+                return
+        logger.error("Scholarship not in favorites, cannot be removed.")
 
-    def get_favorites(self): #"""-> List[Scholarship]"""
+    def get_favorites(self) -> List['Scholarship']:
         """ Returns: All scholarships stored in the favorites list. """
         logger.info("Retrieving favorited scholarships...")
         return self.favorites

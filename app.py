@@ -127,52 +127,82 @@ def create_app(config_class=ProductionConfig):
     ##########################################################
 
     @app.route('/api/scholarships', methods=['GET'])
-    def get_all_scholarships():
-        """Get all available scholarships."""
+    def get_scholarships():
+        """
+        Get scholarships with optional filters.
+        
+        Query Parameters:
+            type (str): Filter by scholarship type
+            country (str): Filter by country
+            degree_level (str): Filter by degree level
+            min_gpa (float): Filter by minimum GPA
+            major (str): Filter by major
+            sort_by (str): Sort results by field (e.g., 'deadline')
+            sort_order (str): Sort direction ('asc' or 'desc')
+        
+        Returns:
+            JSON response with filtered scholarships
+        """
         try:
-            scholarships = Scholarship.get_all_scholarships()
+            # Get all scholarships
+            scholarships = fetch_scholarship_data()
+            
+            # Apply filters based on query parameters
+            filters = request.args
+            
+            # Type filter
+            if filters.get('type'):
+                scholarships = [s for s in scholarships if s['type'] == filters['type']]
+            
+            # Country filter
+            if filters.get('country'):
+                scholarships = [s for s in scholarships if s['country'] == filters['country']]
+            
+            # Degree level filter
+            if filters.get('degree_level'):
+                scholarships = [s for s in scholarships if s['degree_level'] == filters['degree_level']]
+            
+            # Min GPA filter
+            if filters.get('min_gpa'):
+                try:
+                    min_gpa = float(filters['min_gpa'])
+                    scholarships = [s for s in scholarships if s['min_gpa'] and float(s['min_gpa']) >= min_gpa]
+                except ValueError:
+                    return jsonify({
+                        "status": "error",
+                        "message": "Invalid min_gpa value"
+                    }), 400
+            
+            # Major filter
+            if filters.get('major'):
+                scholarships = [
+                    s for s in scholarships 
+                    if any(major['name'].lower() == filters['major'].lower() for major in s['major'])
+                ]
+            
+            # Sorting
+            sort_by = filters.get('sort_by', 'deadline')
+            sort_order = filters.get('sort_order', 'asc')
+            
+            if sort_by in ['deadline', 'scholarship_name', 'university']:
+                scholarships = sorted(
+                    scholarships,
+                    key=lambda x: (x[sort_by] is None, x[sort_by]),  # Handle None values
+                    reverse=(sort_order.lower() == 'desc')
+                )
+            
             return jsonify({
                 "status": "success",
+                "filters_applied": dict(filters),
+                "count": len(scholarships),
                 "scholarships": scholarships
             }), 200
+            
         except Exception as e:
             app.logger.error(f"Error retrieving scholarships: {str(e)}")
             return jsonify({
                 "status": "error",
                 "message": "Failed to retrieve scholarships"
-            }), 500
-
-    @app.route('/api/scholarships/type/<scholarship_type>', methods=['GET'])
-    def get_scholarships_by_type(scholarship_type):
-        """Get scholarships filtered by type."""
-        try:
-            scholarships = Scholarship.get_scholarships_by_type(scholarship_type)
-            return jsonify({
-                "status": "success",
-                "scholarships": scholarships,
-                "type": scholarship_type
-            }), 200
-        except Exception as e:
-            app.logger.error(f"Error retrieving scholarships by type: {str(e)}")
-            return jsonify({
-                "status": "error",
-                "message": "Failed to retrieve scholarships"
-            }), 500
-
-    @app.route('/api/scholarships/sort/deadline', methods=['GET'])
-    def get_scholarships_by_deadline():
-        """Get scholarships sorted by deadline."""
-        try:
-            scholarships = Scholarship.get_scholarships_sorted_by_deadline()
-            return jsonify({
-                "status": "success",
-                "scholarships": scholarships
-            }), 200
-        except Exception as e:
-            app.logger.error(f"Error retrieving sorted scholarships: {str(e)}")
-            return jsonify({
-                "status": "error",
-                "message": "Failed to retrieve sorted scholarships"
             }), 500
 
     ##########################################################
@@ -205,16 +235,28 @@ def create_app(config_class=ProductionConfig):
         try:
             data = request.get_json()
             user_id = data.get('user_id')
-            scholarship_id = data.get('scholarship_id')
+            scholarship_data = data.get('scholarship')
 
-            if not user_id or not scholarship_id:
+            if not user_id or not scholarship_data:
                 return jsonify({
                     "status": "error",
-                    "message": "Missing user_id or scholarship_id"
+                    "message": "Missing user_id or scholarship data"
                 }), 400
 
+            # Create Scholarship object from the received data
+            scholarship = Scholarship(
+                university=scholarship_data.get('university'),
+                scholarship_name=scholarship_data.get('scholarship_name'),
+                type=scholarship_data.get('type'),
+                degree_level=scholarship_data.get('degree_level'),
+                country=scholarship_data.get('country'),
+                deadline=scholarship_data.get('deadline'),
+                min_gpa=scholarship_data.get('min_gpa'),
+                major=scholarship_data.get('major')
+            )
+
             favorites_model = FavoritesModel(user_id)
-            favorites_model.add_to_favorites(scholarship_id)
+            favorites_model.add_to_favorites(scholarship)
 
             return jsonify({
                 "status": "success",
@@ -233,16 +275,28 @@ def create_app(config_class=ProductionConfig):
         try:
             data = request.get_json()
             user_id = data.get('user_id')
-            scholarship_id = data.get('scholarship_id')
+            scholarship_data = data.get('scholarship')
 
-            if not user_id or not scholarship_id:
+            if not user_id or not scholarship_data:
                 return jsonify({
                     "status": "error",
-                    "message": "Missing user_id or scholarship_id"
+                    "message": "Missing user_id or scholarship data"
                 }), 400
 
+            # Create Scholarship object from the received data
+            scholarship = Scholarship(
+                university=scholarship_data.get('university'),
+                scholarship_name=scholarship_data.get('scholarship_name'),
+                type=scholarship_data.get('type'),
+                degree_level=scholarship_data.get('degree_level'),
+                country=scholarship_data.get('country'),
+                deadline=scholarship_data.get('deadline'),
+                min_gpa=scholarship_data.get('min_gpa'),
+                major=scholarship_data.get('major')
+            )
+
             favorites_model = FavoritesModel(user_id)
-            favorites_model.remove_from_favorites(scholarship_id)
+            favorites_model.remove_from_favorites(scholarship)
 
             return jsonify({
                 "status": "success",
@@ -253,6 +307,33 @@ def create_app(config_class=ProductionConfig):
             return jsonify({
                 "status": "error",
                 "message": "Failed to remove scholarship from favorites"
+            }), 500
+
+    @app.route('/api/favorites/clear', methods=['POST'])
+    def clear_favorites():
+        """Clear all favorites for a user."""
+        try:
+            data = request.get_json()
+            user_id = data.get('user_id')
+
+            if not user_id:
+                return jsonify({
+                    "status": "error",
+                    "message": "Missing user_id"
+                }), 400
+
+            favorites_model = FavoritesModel(user_id)
+            favorites_model.clear_favorites()
+
+            return jsonify({
+                "status": "success",
+                "message": "All favorites cleared"
+            }), 200
+        except Exception as e:
+            app.logger.error(f"Error clearing favorites: {str(e)}")
+            return jsonify({
+                "status": "error",
+                "message": "Failed to clear favorites"
             }), 500
 
     # Error handlers
