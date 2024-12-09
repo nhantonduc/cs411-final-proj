@@ -29,21 +29,48 @@ def fetch_scholarship_data():
         # Querying the Notion database
         query = notion.databases.query(database_id=DATABASE_ID)
         
-        # Parsing results
+        # Add debug logging
+        logger.debug(f"Raw query response: {query}")
+        
         scholarships = []
-        for result in query['results']:
-            # Extracting the required properties
-            scholarship = {
-                "university": result['properties'].get('University', {}).get('rich_text', [{}])[0].get('text', {}).get('content', ''),
-                "scholarship_name": result['properties'].get('Scholarship Name', {}).get('title', [{}])[0].get('text', {}).get('content', ''),
-                "type": result['properties'].get('Type', {}).get('select', {}).get('name', ''),
-                "degree_level": result['properties'].get('Degree Level', {}).get('select', {}).get('name', ''),
-                "country": result['properties'].get('Country', {}).get('select', {}).get('name', ''),
-                "deadline": result['properties'].get('Deadline', {}).get('date', {}).get('start', ''),
-                "min_gpa": result['properties'].get('Min GPA', {}).get('number', None),
-                "major": result['properties'].get('Major', {}).get('multi_select', [])
-            }
-            scholarships.append(scholarship)
+        for result in query.get('results', []):  # Use .get() with default empty list
+            try:
+                properties = result.get('properties', {})
+                
+                # More defensive property extraction
+                rich_text = properties.get('University', {}).get('rich_text', [])
+                university = rich_text[0].get('text', {}).get('content', '') if rich_text else ''
+                
+                title = properties.get('Scholarship Name', {}).get('title', [])
+                scholarship_name = title[0].get('text', {}).get('content', '') if title else ''
+                
+                # For select fields, check if select is None before accessing name
+                type_select = properties.get('Type', {}).get('select')
+                type_name = type_select.get('name', '') if type_select else ''
+                
+                degree_select = properties.get('Degree Level', {}).get('select')
+                degree_level = degree_select.get('name', '') if degree_select else ''
+                
+                country_select = properties.get('Country', {}).get('select')
+                country = country_select.get('name', '') if country_select else ''
+                
+                date = properties.get('Deadline', {}).get('date')
+                deadline = date.get('start', '') if date else ''
+                
+                scholarship = {
+                    "university": university,
+                    "scholarship_name": scholarship_name,
+                    "type": type_name,
+                    "degree_level": degree_level,
+                    "country": country,
+                    "deadline": deadline,
+                    "min_gpa": properties.get('Min GPA', {}).get('number'),
+                    "major": properties.get('Major', {}).get('multi_select', [])
+                }
+                scholarships.append(scholarship)
+            except Exception as e:
+                logger.error(f"Error processing individual scholarship: {str(e)}")
+                continue
         
         return scholarships
     

@@ -1,6 +1,8 @@
 from dotenv import load_dotenv
 from flask import Flask, jsonify, make_response, Response, request
 from werkzeug.exceptions import BadRequest, Unauthorized
+from scholarship_finder.utils.random_utils import fetch_scholarship_data
+from pprint import pprint
 # from flask_cors import CORS
 
 from config import ProductionConfig
@@ -268,7 +270,8 @@ def create_app(config_class=ProductionConfig):
             "message": "Internal server error"
         }), 500
 
-    if __name__ == '__main__':
-        app.run(debug=True)
-
     return app
+
+if __name__ == '__main__':
+        app = create_app()
+        app.run(debug=True)
