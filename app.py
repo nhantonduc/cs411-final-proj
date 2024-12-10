@@ -11,6 +11,7 @@ from scholarship_finder.models.user_model import User
 from scholarship_finder.models.favorites_model import FavoritesModel
 from scholarship_finder.models.scholarship_model import Scholarship
 from datetime import datetime
+from scholarship_finder.models.mongo_session_model import login_user, logout_user
 import logging
 
 # Load environment variables from .env file
@@ -119,6 +120,96 @@ def create_app(config_class=ProductionConfig):
         except Exception as e:
             app.logger.error("Failed to delete user: %s", str(e))
             return make_response(jsonify({'error': str(e)}), 500)
+    
+    @app.route('/api/login', methods=['POST'])
+    def login():
+        """
+        Route to log in a user and load their favorites.
+        
+        Expected JSON Input:
+            - username (str): The username of the user.
+            - password (str): The user's password.
+
+        Returns:
+            JSON response indicating the success of the login.
+        
+        Raises:
+            400 error if input validation fails.
+            401 error if authentication fails (invalid username or password).
+            500 error for any unexpected server-side issues.
+        """
+        data = request.get_json()
+        if not data or 'username' not in data or 'password' not in data:
+            app.logger.error("Invalid request payload for login.")
+            raise BadRequest("Invalid request payload. 'username' and 'password' are required.")
+
+        username = data['username']
+        password = data['password']
+
+        try:
+            # Validate user credentials
+            if not User.check_password(username, password):
+                app.logger.warning("Login failed for username: %s", username)
+                raise Unauthorized("Invalid username or password.")
+
+            # Get user ID
+            user_id = User.get_id_by_username(username)
+
+            # Load user's favorites into the FavoritesModel
+            favorites_model = FavoritesModel(user_id)
+            login_user(user_id, favorites_model)  # Load favorites from MongoDB
+
+            app.logger.info("User %s logged in successfully.", username)
+            return jsonify({"message": f"User {username} logged in successfully.", "favorites": favorites_model.get_favorites()}), 200
+
+        except Unauthorized as e:
+            return jsonify({"error": str(e)}), 401
+        except Exception as e:
+            app.logger.error("Error during login for username %s: %s", username, str(e))
+            return jsonify({"error": "An unexpected error occurred."}), 500
+
+
+    @app.route('/api/logout', methods=['POST'])
+    def logout():
+        """
+        Route to log out a user and save their favorites to MongoDB.
+
+        Expected JSON Input:
+            - username (str): The username of the user.
+
+        Returns:
+            JSON response indicating the success of the logout.
+
+        Raises:
+            400 error if input validation fails or user is not found in MongoDB.
+            500 error for any unexpected server-side issues.
+        """
+        data = request.get_json()
+        if not data or 'username' not in data:
+            app.logger.error("Invalid request payload for logout.")
+            raise BadRequest("Invalid request payload. 'username' is required.")
+
+        username = data['username']
+
+        try:
+            # Get user ID
+            user_id = User.get_id_by_username(username)
+
+            # Create a new FavoritesModel instance
+            favorites_model = FavoritesModel(user_id)
+
+            # Save user's favorites and clear the favorites model
+            logout_user(user_id, favorites_model)  # Save favorites to MongoDB
+
+            app.logger.info("User %s logged out successfully.", username)
+            return jsonify({"message": f"User {username} logged out successfully."}), 200
+
+        except ValueError as e:
+            app.logger.warning("Logout failed for username %s: %s", username, str(e))
+            return jsonify({"error": str(e)}), 400
+        except Exception as e:
+            app.logger.error("Error during logout for username %s: %s", username, str(e))
+            return jsonify({"error": "An unexpected error occurred."}), 500
 
     ##########################################################
     #
