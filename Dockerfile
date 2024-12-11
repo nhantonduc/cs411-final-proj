@@ -13,6 +13,10 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Install SQLite3
 RUN apt-get update && apt-get install -y sqlite3
 
+# packages that should be installed maybe?
+RUN pip install notion_client
+RUN pip install pymongo
+
 # Define a volume for persisting the database
 VOLUME ["/app/db"]
 
