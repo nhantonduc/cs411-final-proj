@@ -1,4 +1,6 @@
-#!/Users/anya/Desktop/cs411-final-proj/.venv/bin/python3
+#!/bin/sh
+'''exec' "/Users/oluakibu/Desktop/BU Books/CS 411/cs411-final-proj/.venv/bin/python" "$0" "$@"
+' '''
 # -*- coding: utf-8 -*-
 import re
 import sys
